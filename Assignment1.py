@@ -2,15 +2,7 @@
 Assignment1.py
 DPIT121 - Assignment 1: Car Rental Management System (CLI)
 
-This is a clean, single-file starter that fully meets the brief:
-- FleetItem (base), Car (subclass), Customer, RentalAgency
-- Command-line UI with 9 options
-- Preloaded 5 cars + 5 customers for testing
-- Simple, readable code with type hints and docstrings
-- No heavy validation (per instructions)
-
-You can run it with:  python3 Assignment1.py
-"""
+This is an Assignment for the UOW course DPIT121, Object Oriented Programming with Python
 
 from __future__ import annotations
 from dataclasses import dataclass, field
