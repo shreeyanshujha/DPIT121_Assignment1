@@ -1,106 +1,114 @@
 """
 Assignment1.py
-DPIT121 - Assignment 1: Car Rental Management System (CLI)
+DPIT121 Assignment 1 - Car Rental Management System
+Single-file program with 4 classes + CLI menu.
 
-This is an Assignment for the UOW course DPIT121, Object Oriented Programming with Python
-
-from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import List, Optional
+Uses only Week 1-4 style Python OOP:
+- normal classes
+- __init__
+- lists
+- simple methods
+- basic inheritance (required by assignment)
 """
 
-# ---------- Domain Model ----------
+# Classes
 
-@dataclass
 class FleetItem:
-    """Base class for all fleet items."""
-    model_name: str
+    # Base (super) class
+    def __init__(self, model_name):
+        self.model_name = model_name
 
 
-@dataclass
 class Car(FleetItem):
-    """Concrete vehicle type in the fleet."""
-    car_id: int
-    brand: str
-    available: bool = True
+    # Subclass of FleetItem 
+    def __init__(self, car_id, brand, model_name):
+        FleetItem.__init__(self, model_name)   
+        self.car_id = car_id
+        self.brand = brand
+        self.available = True  
 
-    def __str__(self) -> str:
-        status = "Available" if self.available else "Rented"
-        return f"[{self.car_id}] {self.brand} {self.model_name} - {status}"
+    def __str__(self):
+        if self.available:
+            status = "Available"
+        else:
+            status = "Rented"
+        return "[" + str(self.car_id) + "] " + self.brand + " " + self.model_name + " - " + status
 
 
-@dataclass
 class Customer:
-    """Represents a rental customer."""
-    customer_id: int
-    name: str
-    rented_cars: List[Car] = field(default_factory=list)
+    def __init__(self, customer_id, name):
+        self.customer_id = customer_id
+        self.name = name
+        self.rented_cars = []  # list of Car objects
 
-    def __str__(self) -> str:
-        rented_list = ", ".join(f"{c.brand} {c.model_name} (#{c.car_id})" for c in self.rented_cars) or "None"
-        return f"[{self.customer_id}] {self.name} | Rented: {rented_list}"
+    def __str__(self):
+        if len(self.rented_cars) == 0:
+            rented_list = "None"
+        else:
+            rented_list = ""
+            for c in self.rented_cars:
+                rented_list += c.brand + " " + c.model_name + " (#" + str(c.car_id) + "), "
+            rented_list = rented_list[:-2]  # remove last comma/space
+        return "[" + str(self.customer_id) + "] " + self.name + " | Rented: " + rented_list
 
 
 class RentalAgency:
-    """
-    Manages the car fleet and the customer list.
-    Responsibilities include searching, adding, renting, and returning cars.
-    """
-    def __init__(self) -> None:
-        self.cars: List[Car] = []
-        self.customers: List[Customer] = []
-        self.next_car_id: int = 1  # auto-increment for new cars
+    def __init__(self):
+        self.cars = []
+        self.customers = []
+        self.next_car_id = 1
 
-    # ---- Fleet operations ----
-    def show_fleet(self) -> None:
+    # Fleet methods
+    def show_fleet(self):
         print("\n--- Fleet ---")
-        if not self.cars:
-            print("No cars in the fleet yet.")
+        if len(self.cars) == 0:
+            print("No cars in the fleet.")
             return
         for car in self.cars:
             print(car)
 
-    def add_car(self, brand: str, model_name: str) -> Car:
-        car = Car(car_id=self.next_car_id, brand=brand, model_name=model_name, available=True)
+    def add_car(self, brand, model_name):
+        car = Car(self.next_car_id, brand, model_name)
         self.cars.append(car)
         self.next_car_id += 1
         return car
 
-    def search_car_by_model(self, model_name: str) -> List[Car]:
-        key = model_name.strip().lower()
-        return [c for c in self.cars if key in c.model_name.lower()]
+    def search_car_by_model(self, model_name):
+        results = []
+        key = model_name.lower()
+        for car in self.cars:
+            if key in car.model_name.lower():
+                results.append(car)
+        return results
 
-    def search_car_by_id(self, car_id: int) -> Optional[Car]:
-        for c in self.cars:
-            if c.car_id == car_id:
-                return c
+    def search_car_by_id(self, car_id):
+        for car in self.cars:
+            if car.car_id == car_id:
+                return car
         return None
 
-    # ---- Customer operations ----
-    def show_customers(self) -> None:
+    # Customer methods 
+    def show_customers(self):
         print("\n--- Customers ---")
-        if not self.customers:
+        if len(self.customers) == 0:
             print("No customers found.")
             return
         for cust in self.customers:
             print(cust)
 
-    def add_customer(self, customer_id: int, name: str) -> Customer:
-        # Simple uniqueness check (optional)
-        if self.search_customer_by_id(customer_id) is not None:
-            raise ValueError(f"Customer ID {customer_id} already exists.")
-        cust = Customer(customer_id=customer_id, name=name)
+    def add_customer(self, customer_id, name):
+        cust = Customer(customer_id, name)
         self.customers.append(cust)
         return cust
 
-    def search_customer_by_id(self, customer_id: int) -> Optional[Customer]:
+    def search_customer_by_id(self, customer_id):
         for cust in self.customers:
             if cust.customer_id == customer_id:
                 return cust
         return None
 
-    # ---- Rental operations ----
-    def rent_car(self, customer_id: int, car_id: int) -> str:
+    # Rent / return 
+    def rent_car(self, customer_id, car_id):
         cust = self.search_customer_by_id(customer_id)
         if cust is None:
             return "Customer not found."
@@ -109,14 +117,14 @@ class RentalAgency:
         if car is None:
             return "Car not found."
 
-        if not car.available:
+        if car.available == False:
             return "Car is not available."
 
         car.available = False
         cust.rented_cars.append(car)
-        return f"Car #{car.car_id} rented to {cust.name}."
+        return "Car #" + str(car.car_id) + " rented to " + cust.name + "."
 
-    def return_car(self, customer_id: int, car_id: int) -> str:
+    def return_car(self, customer_id, car_id):
         cust = self.search_customer_by_id(customer_id)
         if cust is None:
             return "Customer not found."
@@ -125,25 +133,27 @@ class RentalAgency:
         if car is None:
             return "Car not found."
 
-        # Ensure this customer actually has this car
-        for i, c in enumerate(cust.rented_cars):
-            if c.car_id == car_id:
+        # find car inside customer's rented list
+        for i in range(len(cust.rented_cars)):
+            if cust.rented_cars[i].car_id == car_id:
                 cust.rented_cars.pop(i)
                 car.available = True
-                return f"Car #{car.car_id} returned by {cust.name}."
+                return "Car #" + str(car.car_id) + " returned by " + cust.name + "."
+
         return "This customer did not rent that car."
 
 
-# ---------- Seed/Test Data ----------
+#  Helper functions 
 
-def seed_data(agency: RentalAgency) -> None:
-    """Preload 5 cars and 5 customers for quick testing."""
-    agency.add_car("Toyota", "Corolla")
-    agency.add_car("Honda", "Civic")
-    agency.add_car("BMW", "3 Series")
-    agency.add_car("Audi", "A4")
-    agency.add_car("Tesla", "Model 3")
+def seed_data(agency):
+    # 5 cars
+    agency.add_car("Toyota", "GR Corolla")
+    agency.add_car("Honda", "Civic Type R")
+    agency.add_car("BMW", "M3 Competition")
+    agency.add_car("Audi", "RS5 Sportback")
+    agency.add_car("Tesla", "Model 3 Performance")
 
+    # 5 customers
     agency.add_customer(101, "Alice")
     agency.add_customer(102, "Bob")
     agency.add_customer(103, "Charlie")
@@ -151,9 +161,7 @@ def seed_data(agency: RentalAgency) -> None:
     agency.add_customer(105, "Ethan")
 
 
-# ---------- CLI (Main Menu) ----------
-
-def print_menu() -> None:
+def print_menu():
     print("""
 ================= Car Rental Management =================
 1) Show fleet
@@ -169,84 +177,72 @@ def print_menu() -> None:
 """)
 
 
-def main() -> None:
+# Main program 
+
+def main():
     agency = RentalAgency()
-    seed_data(agency)  # preload
+    seed_data(agency)
 
     while True:
         print_menu()
-        choice = input("Choose an option (1-9): ").strip()
+        choice = input("Choose an option (1-9): ")
 
         if choice == "1":
             agency.show_fleet()
 
         elif choice == "2":
-            brand = input("Enter brand: ").strip()
-            model = input("Enter model name: ").strip()
-            car = agency.add_car(brand, model)
-            print(f"Added car: {car}")
+            brand = input("Enter brand: ")
+            model = input("Enter model name: ")
+            new_car = agency.add_car(brand, model)
+            print("Added car:", new_car)
 
         elif choice == "3":
-            q = input("Model name to search: ").strip()
-            results = agency.search_car_by_model(q)
-            if results:
-                print("\nResults:")
+            model = input("Enter model name to search: ")
+            results = agency.search_car_by_model(model)
+            if len(results) == 0:
+                print("No cars matched that model name.")
+            else:
+                print("\nSearch results:")
                 for car in results:
                     print(car)
-            else:
-                print("No cars matched your search.")
 
         elif choice == "4":
             agency.show_customers()
 
         elif choice == "5":
-            try:
-                cid = int(input("Enter new customer ID (int): ").strip())
-                name = input("Enter customer name: ").strip()
-                cust = agency.add_customer(cid, name)
-                print(f"Added customer: {cust}")
-            except ValueError as e:
-                print(f"Error: {e}")
+            cid = int(input("Enter new customer ID: "))
+            name = input("Enter customer name: ")
+            cust = agency.add_customer(cid, name)
+            print("Added customer:", cust)
 
         elif choice == "6":
-            try:
-                cid = int(input("Enter customer ID to search: ").strip())
-                cust = agency.search_customer_by_id(cid)
-                if cust:
-                    print(cust)
-                else:
-                    print("Customer not found.")
-            except ValueError:
-                print("Please enter a valid integer ID.")
+            cid = int(input("Enter customer ID to search: "))
+            cust = agency.search_customer_by_id(cid)
+            if cust is None:
+                print("Customer not found.")
+            else:
+                print(cust)
 
         elif choice == "7":
-            try:
-                cid = int(input("Customer ID: ").strip())
-                car_id = int(input("Car ID to rent: ").strip())
-                msg = agency.rent_car(cid, car_id)
-                print(msg)
-            except ValueError:
-                print("Please enter valid integer IDs.")
+            cid = int(input("Customer ID: "))
+            car_id = int(input("Car ID to rent: "))
+            print(agency.rent_car(cid, car_id))
 
         elif choice == "8":
-            try:
-                cid = int(input("Customer ID: ").strip())
-                car_id = int(input("Car ID to return: ").strip())
-                msg = agency.return_car(cid, car_id)
-                print(msg)
-            except ValueError:
-                print("Please enter valid integer IDs.")
+            cid = int(input("Customer ID: "))
+            car_id = int(input("Car ID to return: "))
+            print(agency.return_car(cid, car_id))
 
         elif choice == "9":
             print("Exiting...")
             break
 
         else:
-            print("Invalid option. Choose 1-9.")
+            print("Invalid choice. Please select 1-9.")
 
-        # small visual separator between actions
-        print("\n---------------------------------------------------------\n")
+        print("\n-------------------------------------------------\n")
 
 
 if __name__ == "__main__":
     main()
+
