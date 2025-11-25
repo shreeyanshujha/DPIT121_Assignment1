@@ -4,17 +4,6 @@ DPIT121 Assignment 1 - Car Rental Management System
 Single-file program with 4 classes + CLI menu.
 This is an Assignment for the UOW course DPIT121, Object Oriented Programming with Python
 """
-Assignment1.py
-DPIT121 Assignment 1 - Car Rental Management System
-Single-file program with 4 classes + CLI menu.
-
-Uses only Week 1-4 style Python OOP:
-- normal classes
-- __init__
-- lists
-- simple methods
-- basic inheritance (required by assignment)
-"""
 
 # Classes
 
